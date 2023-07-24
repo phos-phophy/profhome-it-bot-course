@@ -22,6 +22,8 @@ def help_cmd(message: Message):
     """
     /help - print this help message
     """
+
+    # this is not a general practice, but I was just wondering
     texts = [doc for _, obj in inspect.getmembers(sys.modules[__name__], inspect.isfunction) if (doc := inspect.getdoc(obj)) is not None]
     bot.send_message(chat_id=message.chat.id, text='\n'.join(texts))
 
