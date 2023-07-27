@@ -2,7 +2,7 @@
 #include <iostream>
 #include <algorithm>
 
-#define SLAB_BLOCK_MIN_NUM 100
+#define SLAB_BLOCK_MIN_NUM 16
 
 /**
  * Эти две функции вы должны использовать для аллокации
@@ -103,16 +103,19 @@ void cache_release(struct cache *cache)
 }
 
 
-void move_slab(struct slab_header **from, struct slab_header **to)
+void move_slab(struct slab_header **from, struct slab_header **to, bool backward_ref)
 {
     if (*from == NULL) return; 
 
     struct slab_header *slab = *from;
 
-    *from = slab->next_slab;
+    if (slab->next_slab != NULL)
+        if (backward_ref)
+            slab->next_slab->prev_slab = *from;
+        else
+            slab->next_slab->prev_slab = NULL;
 
-    if (*from != NULL)
-        (*from)->prev_slab = NULL;
+    *from = slab->next_slab;
 
     slab->next_slab = *to;
     *to = slab;
@@ -137,8 +140,10 @@ void *cache_alloc(struct cache *cache)
         struct slab_block* slab_block = slab->free_block;
 
         slab->free_block = slab_block->next_block;
+        slab->free_counter--;
+
         if (slab->free_block == NULL)
-            move_slab(&cache->slab, &cache->filled_slab);
+            move_slab(&cache->slab, &cache->filled_slab, false);
 
         return slab_block;
     } 
@@ -149,11 +154,12 @@ void *cache_alloc(struct cache *cache)
         struct slab_block* slab_block = slab->free_block;
 
         slab->free_block = slab_block->next_block;
+        slab->free_counter--;
 
         if (slab->free_block == NULL)
-            move_slab(&cache->free_slab, &cache->filled_slab);
+            move_slab(&cache->free_slab, &cache->filled_slab, false);
         else
-            move_slab(&cache->free_slab, &cache->slab);
+            move_slab(&cache->free_slab, &cache->slab, false);
 
         return slab_block;
     } 
@@ -168,6 +174,7 @@ void *cache_alloc(struct cache *cache)
         new_slab->next_slab->prev_slab = new_slab;
 
     new_slab->free_counter = cache->slab_objects;
+    new_slab->free_block = (struct slab_block*)((unsigned char*) new_slab + sizeof(struct slab_header));
     new_slab->free_block->next_block = NULL;
 
     struct slab_block *prev_block = new_slab->free_block;
@@ -188,7 +195,7 @@ void *cache_alloc(struct cache *cache)
  **/
 void cache_free(struct cache *cache, void *ptr)
 {
-    struct slab_header *slab = (struct slab_header *)(((uint64_t) ptr >> cache->slab_order) << cache->slab_order);
+    struct slab_header *slab = (struct slab_header *)(((uint64_t) ptr >> (cache->slab_order + 12)) << (cache->slab_order + 12));
 
     struct slab_block *block = (struct slab_block *)ptr;
     block->next_block = slab->free_block;
@@ -207,14 +214,17 @@ void cache_free(struct cache *cache, void *ptr)
     else
         to = &cache->slab;
 
-    if (slab->prev_slab != NULL)
+    bool backward_ref = false;
+
+    if (slab->prev_slab != NULL) {
         from = &slab->prev_slab;
-    else if (slab == cache->slab)
+        backward_ref = true;
+    } else if (slab == cache->slab)
         from = &cache->slab;
     else
         from = &cache->filled_slab;
 
-    move_slab(&slab->prev_slab, to);
+    move_slab(from, to, backward_ref);
 }
 
 
