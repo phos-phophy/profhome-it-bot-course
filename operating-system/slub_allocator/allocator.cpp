@@ -73,15 +73,15 @@ void cache_setup(struct cache *cache, size_t object_size)
     cache->filled_slab = NULL;
     cache->slab = NULL;
 
-    size_t required_memory = sizeof(struct slab_header);
-    required_memory += SLAB_BLOCK_MIN_NUM * std::max(object_size, sizeof(struct slab_block));
+    cache->object_size = std::max(object_size, sizeof(struct slab_block));
+
+    size_t required_memory = sizeof(struct slab_header) + SLAB_BLOCK_MIN_NUM * cache->object_size;
 
     int order = 0;
     while ((1UL << order) * 4096 < required_memory) ++order;
     cache->slab_order = order;
 
-    cache->object_size = std::max(object_size, sizeof(struct slab_block));
-    cache->slab_objects = ( (1UL << order) * 4096 - sizeof(struct slab_header)) / cache->object_size;
+    cache->slab_objects = ((1UL << order) * 4096 - sizeof(struct slab_header)) / cache->object_size;
 }
 
 
@@ -105,7 +105,7 @@ void cache_release(struct cache *cache)
 
 void move_slab(struct slab_header **from, struct slab_header **to)
 {
-    if ((struct slab_header *)from == NULL) return; 
+    if (*from == NULL) return; 
 
     struct slab_header *slab = *from;
 
@@ -149,7 +149,6 @@ void *cache_alloc(struct cache *cache)
         struct slab_block* slab_block = slab->free_block;
 
         slab->free_block = slab_block->next_block;
-        cache->free_slab = slab->next_slab;
 
         if (slab->free_block == NULL)
             move_slab(&cache->free_slab, &cache->filled_slab);
@@ -162,12 +161,14 @@ void *cache_alloc(struct cache *cache)
     // create new slab and try to allocate memory again
     struct slab_header *new_slab = (struct slab_header *)alloc_slab(cache->slab_order);
     new_slab->next_slab = cache->free_slab;
+    cache->free_slab = new_slab;
     new_slab->prev_slab = NULL;
+
     if (new_slab->next_slab != NULL)
         new_slab->next_slab->prev_slab = new_slab;
+
     new_slab->free_counter = cache->slab_objects;
     new_slab->free_block->next_block = NULL;
-    cache->free_slab = new_slab;
 
     struct slab_block *prev_block = new_slab->free_block;
     for (size_t i = 1; i < cache->slab_objects; i++) {
@@ -197,10 +198,10 @@ void cache_free(struct cache *cache, void *ptr)
 
     if (slab->free_counter != 1 && slab->free_counter != cache->slab_objects)
         return;
-    
+
     struct slab_header **from;
     struct slab_header **to;
- 
+
     if (slab->free_counter == cache->slab_objects)
         to = &cache->free_slab;
     else
