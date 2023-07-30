@@ -1,6 +1,6 @@
 # PROFHOME :: IT :: Боты
 
-Learn to write simple bots for needs of the CMC MSU profhome
+Learn to write simple bots for needs of the CMC MSU profhome.
 
 [Course page at Stepik](https://stepik.org/course/178822/info)
 
@@ -15,3 +15,7 @@ pip3 install -r requirements.txt
 ```
 
 **NOTE**: Python 3.10.6 is used
+
+## Homeworks
+
+1. [First bot](lesson_3_first_bot)
