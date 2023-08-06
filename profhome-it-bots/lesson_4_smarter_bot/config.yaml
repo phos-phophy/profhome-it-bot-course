@@ -1,0 +1,5 @@
+middlewares:
+  antiflood:
+    limit: !!float 2
+# filters:
+# handlers:

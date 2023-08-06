@@ -1,6 +1,8 @@
 # PROFHOME :: IT :: Боты
 
-Learn to write simple bots for needs of the CMC MSU profhome.
+Learn to write tg bots for needs of the CMC MSU profhome.
+
+Used framework: pyTelegramBotAPI
 
 [Course page at Stepik](https://stepik.org/course/178822/info)
 
@@ -18,4 +20,5 @@ pip3 install -r requirements.txt
 
 ## Homeworks
 
-1. [First bot](lesson_3_first_bot)
+1. [First bot](lesson_3_first_bot/bot.py)
+2. [Smarter bot](lesson_4_smarter_bot/README.md)
