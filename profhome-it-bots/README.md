@@ -20,5 +20,5 @@ pip3 install -r requirements.txt
 
 ## Homeworks
 
-1. [First bot](lesson_3_first_bot/bot.py)
+1. [First bot](lesson_3_first_bot/README.md)
 2. [Smarter bot](lesson_4_smarter_bot/README.md)
