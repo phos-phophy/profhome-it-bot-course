@@ -4,7 +4,7 @@ import sys
 from telebot import TeleBot
 from telebot.types import Message
 
-from lesson_3_first_bot.credentials import TOKEN
+from credentials import TOKEN
 
 bot = TeleBot(TOKEN)
 
