@@ -3,9 +3,11 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from sqlalchemy import insert, select
 
-from ..schemas import User, JWTToken
-from ..database import add_user, get_user
+from ..databases import PostgreSQLManager
+from ..databases.postgresql.user import User as DBUser
+from ..schemas import JWTToken, SaltedUser, User
 
 
 AUTH_URL = '/user/auth'
@@ -18,30 +20,34 @@ def register_auth_endpoints(app: FastAPI):
         headers={"WWW-Authenticate": "Bearer"}
     )
 
-    @app.post('/user/register', status_code=status.HTTP_201_CREATED)
+    @app.post('/user/register', status_code=status.HTTP_201_CREATED, tags=['Registration and authentication'])
     async def register(data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> User:
         """
         Endpoint that registers new common (non-admin) user and return its schema.
         """
 
-        user_in_db: User | None = await get_user(data.username)
+        db = PostgreSQLManager().database
+        user_in_db = await db.fetch_one(select(DBUser).where(DBUser.username == data.username))
 
         if user_in_db:
             exception.detail = 'This username is already occupied!'
             raise exception
 
-        new_user = User.new_user(data, 'common')
-        await add_user(new_user)
+        new_user = SaltedUser.new_user(data, is_admin=False)
+        await db.execute(insert(DBUser), new_user.model_dump())
 
-        return new_user
+        return User.model_validate(new_user)
 
-    @app.post(AUTH_URL, status_code=status.HTTP_200_OK, response_model=JWTToken)
+    @app.post(AUTH_URL, status_code=status.HTTP_200_OK, response_model=JWTToken, tags=['Registration and authentication'])
     async def auth(data: Annotated[OAuth2PasswordRequestForm, Depends()]):
         """
         Endpoint that authenticates user and returns its JWT token.
         """
 
-        user_in_db: User | None = await get_user(data.username)
+        db = PostgreSQLManager().database
+        user_in_db = await db.fetch_one(select(DBUser).where(DBUser.username == data.username))
+
+        user_in_db = SaltedUser.model_validate(user_in_db) if user_in_db else user_in_db
 
         if not user_in_db or not user_in_db.check(data):
             exception.detail = 'Invalid credentials!'
@@ -69,7 +75,10 @@ async def authenticate_user(token: Annotated[str, Depends(oauth2)]) -> User:
     if not data:
         raise exception
 
-    user = await get_user(data[0], data[1])
+    db = PostgreSQLManager().database
+    user = await db.execute(select(DBUser).where(DBUser.username == data[0], DBUser.password == data[1]))
+
+    user = User.model_validate(user) if user else user
 
     if not user:
         raise exception

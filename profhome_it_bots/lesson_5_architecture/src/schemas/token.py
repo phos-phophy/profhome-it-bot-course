@@ -18,6 +18,7 @@ class JWTToken(BaseModel):
     class Config:
         frozen = True
         extra = Extra.forbid
+        from_attributes = True
 
     @classmethod
     def wrap_token(cls, token: str) -> 'JWTToken':
@@ -33,7 +34,7 @@ class JWTToken(BaseModel):
         Generates JWT token for the given user.
         """
 
-        data = {'sub': user.username, 'rol': user.role, 'exp': datetime.utcnow() + expires_delta}
+        data = {'sub': user.username, 'adm': user.is_admin, 'exp': datetime.utcnow() + expires_delta}
         return cls.wrap_token(jwt.encode(data, os.getenv('SECRET_KEY'), algorithm='HS256'))
 
     def decode_token(self) -> tuple[str, str] | None:

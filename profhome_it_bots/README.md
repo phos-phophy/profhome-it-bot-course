@@ -9,7 +9,7 @@ Used framework: pyTelegramBotAPI
 ## Set up virtual environment
 
 ```bash
-cd path/to/profhome-it-bots
+cd path/to/profhome_it_bots
 
 python3 -m venv .venv
 source .venv/bin/activate
@@ -22,3 +22,4 @@ pip3 install -r requirements.txt
 
 1. [First bot](lesson_3_first_bot/README.md)
 2. [Smarter bot](lesson_4_smarter_bot/README.md)
+3. [Architecture](lesson_5_architecture/README.md)
