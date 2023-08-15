@@ -47,7 +47,12 @@ class JWTToken(BaseModel):
         except JWTError:
             return None
 
-        if not payload.get('sub') or not payload.get('adm') or not payload.get('exp') or payload.get('exp') < datetime.utcnow():
+        keys = payload.keys()
+        if 'sub' not in keys or 'adm' not in keys or 'exp' not in keys:
             return None
 
-        return payload.get('sub'), payload.get('adm')
+        try:
+            if payload.get('exp') > int(datetime.utcnow().timestamp()):
+                return payload.get('sub'), payload.get('adm')
+        except Exception:
+            return None
