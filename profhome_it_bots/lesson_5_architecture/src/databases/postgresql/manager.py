@@ -4,6 +4,10 @@ from ..utils import _Singleton
 
 
 class PostgreSQLManager(metaclass=_Singleton):
+    """
+    A singleton PostresQL database manager that can be used to easily obtain a database.
+    """
+
     def __init__(self):
         self._database: Database | None = None
 

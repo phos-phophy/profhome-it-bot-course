@@ -22,7 +22,8 @@ class User(BaseModel):
 
 class SaltedUser(User):
     """
-    Schema that represents user with its salt. Don't send to front!.
+    Schema that represents user with its salt. Used to generate new users and validate request forms.
+    NOTE: Don't send to front, so as not to compromise the salt!
     """
 
     salt: str

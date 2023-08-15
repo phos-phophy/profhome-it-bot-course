@@ -37,7 +37,7 @@ class JWTToken(BaseModel):
         data = {'sub': user.username, 'adm': user.is_admin, 'exp': datetime.utcnow() + expires_delta}
         return cls.wrap_token(jwt.encode(data, os.getenv('SECRET_KEY'), algorithm='HS256'))
 
-    def decode_token(self) -> tuple[str, str] | None:
+    def decode_token(self) -> tuple[str, bool] | None:
         """
         Decodes JWT token and return user info.
         """
@@ -47,7 +47,7 @@ class JWTToken(BaseModel):
         except JWTError:
             return None
 
-        if not payload.get('sub') or not payload.get('rol') or not payload.get('exp') or payload.get('exp') < datetime.utcnow():
+        if not payload.get('sub') or not payload.get('adm') or not payload.get('exp') or payload.get('exp') < datetime.utcnow():
             return None
 
-        return payload.get('sub'), payload.get('rol')
+        return payload.get('sub'), payload.get('adm')

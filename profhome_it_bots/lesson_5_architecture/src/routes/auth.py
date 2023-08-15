@@ -76,11 +76,9 @@ async def authenticate_user(token: Annotated[str, Depends(oauth2)]) -> User:
         raise exception
 
     db = PostgreSQLManager().database
-    user = await db.execute(select(DBUser).where(DBUser.username == data[0], DBUser.password == data[1]))
-
-    user = User.model_validate(user) if user else user
+    user = await db.fetch_one(select(DBUser).where(DBUser.username == data[0], DBUser.is_admin == data[1]))
 
     if not user:
         raise exception
 
-    return user
+    return User.model_validate(user)

@@ -4,6 +4,9 @@ from .utils import Base
 
 
 class User(Base):
+    """
+    Model of the users table:
+    """
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, unique=True, index=True, autoincrement=True)
