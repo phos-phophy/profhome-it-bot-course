@@ -15,9 +15,10 @@ Try to design an application architecture that conforms to the following princip
 
 ## Description
 
-A very simple template of FastAPI application that can be extended in the future. There are 2 endpoints:
+A very simple template of FastAPI application that can be extended in the future. There are 3 endpoints:
 * `POST /user/register` - registers new common (non-admin) user
 * `POST /user/auth` - authenticates user and returns JWT session token
+* `GET /users` - returns list of all common (non-admin) users
 
 PostgreSQL is used as an application database.
 
