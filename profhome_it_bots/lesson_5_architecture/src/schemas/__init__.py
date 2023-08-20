@@ -1,7 +1,7 @@
-from .user import SaltedUser, User
+from .user import SecuredUser, User
 from .token import JWTToken
 
 __all__ = [
-    'SaltedUser', 'User',
+    'SecuredUser', 'User',
     'JWTToken'
 ]

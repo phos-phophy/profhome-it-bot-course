@@ -7,7 +7,7 @@ from sqlalchemy import insert, select
 
 from ..databases import PostgreSQLManager
 from ..databases.postgresql.user import User as DBUser
-from ..schemas import JWTToken, SaltedUser, User
+from ..schemas import JWTToken, SecuredUser, User
 
 
 AUTH_URL = '/user/auth'
@@ -33,7 +33,7 @@ def register_auth_endpoints(app: FastAPI):
             exception.detail = 'This username is already occupied!'
             raise exception
 
-        new_user = SaltedUser.new_user(data, is_admin=False)
+        new_user = SecuredUser.new_user(data, is_admin=False)
         await db.execute(insert(DBUser), new_user.model_dump())
 
         return User.model_validate(new_user)
@@ -47,7 +47,7 @@ def register_auth_endpoints(app: FastAPI):
         db = PostgreSQLManager().database
         user_in_db = await db.fetch_one(select(DBUser).where(DBUser.username == data.username))
 
-        user_in_db = SaltedUser.model_validate(user_in_db) if user_in_db else user_in_db
+        user_in_db = SecuredUser.model_validate(user_in_db) if user_in_db else user_in_db
 
         if not user_in_db or not user_in_db.check(data):
             exception.detail = 'Invalid credentials!'

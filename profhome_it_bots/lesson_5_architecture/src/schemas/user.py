@@ -11,7 +11,6 @@ class User(BaseModel):
     """
 
     username: str
-    password: str
     is_admin: bool
 
     class Config:
@@ -20,16 +19,17 @@ class User(BaseModel):
         from_attributes = True
 
 
-class SaltedUser(User):
+class SecuredUser(User):
     """
-    Schema that represents user with its salt. Used to generate new users and validate request forms.
-    NOTE: Don't send to front, so as not to compromise the salt!
+    Schema that represents user with its password and salt. Used to generate new users and validate request forms.
+    NOTE: Don't send to front, so as not to compromise password and salt!
     """
 
+    password: str
     salt: str
 
     @classmethod
-    def new_user(cls, data: OAuth2PasswordRequestForm, is_admin: bool = False) -> 'SaltedUser':
+    def new_user(cls, data: OAuth2PasswordRequestForm, is_admin: bool = False) -> 'SecuredUser':
         salt = secrets.token_urlsafe(20)
         return cls(
             username=data.username,
