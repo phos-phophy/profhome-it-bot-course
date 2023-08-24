@@ -18,3 +18,4 @@ A short course (in Russian) that covers the following topics in some detail:
 3. [SLAB allocator](slab_allocator/README.md)
 4. [Scheduler](scheduler/README.md)
 5. [RMW register](rmw_register/README.md)
+6. [Wait/die lock](wait_die_lock/README.md)
