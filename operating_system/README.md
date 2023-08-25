@@ -9,7 +9,7 @@ A short course (in Russian) that covers the following topics in some detail:
 1. Memory management;
 2. Process scheduling and multitasking;
 3. Thread synchronization;
-4. User space and system calls .
+4. User space and system calls.
 
 ## Homeworks
 
